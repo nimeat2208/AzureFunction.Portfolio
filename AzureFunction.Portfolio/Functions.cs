@@ -29,42 +29,42 @@ namespace AzureFunction.Portfolio
 
             string errMsg;
 
-            var smtpInfo = new SmtpSetting
-            {
-                SmtpServer = Environment.GetEnvironmentVariable("SmtpServer") ?? string.Empty,
-                SmtpServerPort = Environment.GetEnvironmentVariable("SmtpServerPort") ?? string.Empty,
-                SmtpServerSSL = Environment.GetEnvironmentVariable("SmtpServerSSL") ?? string.Empty,
-                SmtpServerUserName = Environment.GetEnvironmentVariable("SmtpServerUserName") ?? string.Empty,
-                SmtpServerPassword = Environment.GetEnvironmentVariable("SmtpServerPassword") ?? string.Empty,
-                SmtpEmailFrom = Environment.GetEnvironmentVariable("SmtpEmailFrom") ?? string.Empty,
-                SmtpEmailTo = Environment.GetEnvironmentVariable("SmtpEmailTo") ?? string.Empty,
-            };
-
-            errMsg = ValidateForSmtpInfo(smtpInfo);
-            if (!string.IsNullOrWhiteSpace(errMsg))
-            {
-                _logger.LogError(errMsg);
-                response.StatusCode = HttpStatusCode.InternalServerError;
-                await response.WriteAsJsonAsync(new { RtnMsg = errMsg, CurrentTime = DateTime.UtcNow });
-                return response;
-            }
-
-            string strReqBody = await new StreamReader(req.Body).ReadToEndAsync();
-            var data = JsonConvert.DeserializeObject<Contact>(strReqBody);
-
-            errMsg = ValidateForReqBody(data);
-            if (!string.IsNullOrWhiteSpace(errMsg))
-            {
-                _logger.LogError(errMsg);
-                response.StatusCode = HttpStatusCode.InternalServerError;
-                await response.WriteAsJsonAsync(new { RtnMsg = errMsg, CurrentTime = DateTime.UtcNow });
-                return response;
-            }
-
-            bool smtpServerSSL = bool.Parse(smtpInfo.SmtpServerSSL);
-
             try
             {
+                var smtpInfo = new SmtpSetting
+                {
+                    SmtpServer = Environment.GetEnvironmentVariable("SmtpServer") ?? string.Empty,
+                    SmtpServerPort = Environment.GetEnvironmentVariable("SmtpServerPort") ?? string.Empty,
+                    SmtpServerSSL = Environment.GetEnvironmentVariable("SmtpServerSSL") ?? string.Empty,
+                    SmtpServerUserName = Environment.GetEnvironmentVariable("SmtpServerUserName") ?? string.Empty,
+                    SmtpServerPassword = Environment.GetEnvironmentVariable("SmtpServerPassword") ?? string.Empty,
+                    SmtpEmailFrom = Environment.GetEnvironmentVariable("SmtpEmailFrom") ?? string.Empty,
+                    SmtpEmailTo = Environment.GetEnvironmentVariable("SmtpEmailTo") ?? string.Empty,
+                };
+
+                errMsg = ValidateForSmtpInfo(smtpInfo);
+                if (!string.IsNullOrWhiteSpace(errMsg))
+                {
+                    _logger.LogError(errMsg);
+                    response.StatusCode = HttpStatusCode.InternalServerError;
+                    await response.WriteAsJsonAsync(new { RtnMsg = errMsg, CurrentTime = DateTime.UtcNow });
+                    return response;
+                }
+
+                string strReqBody = await new StreamReader(req.Body).ReadToEndAsync();
+                var data = JsonConvert.DeserializeObject<Contact>(strReqBody);
+
+                errMsg = ValidateForReqBody(data);
+                if (!string.IsNullOrWhiteSpace(errMsg))
+                {
+                    _logger.LogError(errMsg);
+                    response.StatusCode = HttpStatusCode.InternalServerError;
+                    await response.WriteAsJsonAsync(new { RtnMsg = errMsg, CurrentTime = DateTime.UtcNow });
+                    return response;
+                }
+
+                bool smtpServerSSL = bool.Parse(smtpInfo.SmtpServerSSL);
+
                 SmtpClient client = new SmtpClient(smtpInfo.SmtpServer)
                 {
                     Port = int.Parse(smtpInfo.SmtpServerPort),
@@ -91,7 +91,7 @@ namespace AzureFunction.Portfolio
             {
                 await response.WriteAsJsonAsync(new { RtnMsg = ex.Message, CurrentTime = DateTime.UtcNow });
             }
-            
+
             return response;
         }
 
